@@ -1,0 +1,21 @@
+EXO 1 :
+    Question 1 :
+        décalage de 5
+    Question 2 :
+        13 en avant ou en arrière c'est la même chose, le chifrage et le déchifrage peut se faire de la même façon
+    Question 3 :
+        en général, plus le message est long, plus il est facile à décrypter, pour un message cours, c'est plus compliqué.
+        Mais dans ce cas, il est cependant possible de décrypter le message
+    Question 4 :
+        MIELHTKTIHTV :
+        quatreheures
+        SGNECJZC :
+        sixheure
+    Question 7 :
+        avec la fréquance des lettre les plus courants, puis on essaie de déchiffrer, et puis on prend la clé,
+        on tire 2 lettres au hazard et on les echange, on garde le meilleur résultat.
+EXO 2 :
+    Question 1 :
+        sur la feuille
+    Question 2 :
+        position des trous : 2 parmi 10, soit (10*9)/2
