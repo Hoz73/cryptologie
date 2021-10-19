@@ -7,7 +7,9 @@
 #include <vector>
 #include <stack>
 #include <algorithm>
+#include <cstdint>
 #include "classes.cpp"
+
 
 typedef unsigned char byte;
 
@@ -64,6 +66,7 @@ string i2c(Config config, long number) {
     return res;
 }
 
+// Todo not used
 string i2c_min_equal_max(Config config, long pos) {
     string msg;
     stack<string> q;
@@ -86,6 +89,7 @@ string i2c_min_equal_max(Config config, long pos) {
     return res;
 }
 
+// Todo not used
 void i2c2(Config config, long number) {
     int i = 1;
     bool end = false;
@@ -119,6 +123,10 @@ void i2c2(Config config, long number) {
     cout << result << endl;
 }
 
+uint64_t h2i(Config config, byte* hash, int colonne){
+    uint64_t* y = (uint64_t*)hash;
+    return (*y + colonne) % config.n;
+}
 //********************************************************************************************
 
 void question1() {
@@ -143,6 +151,13 @@ void question3(Config config, int position) {
     i2c(config, position);
 }
 
+void question5(Config config, char *text, int t){
+    byte res[30];
+    hash_MD5(text,res);
+    uint64_t result = h2i(config, res, t);
+    cout <<result <<endl;
+}
+
 int main() {
     string alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
@@ -150,17 +165,23 @@ int main() {
     //question1();
 
 // Question 2 *************************************
-    Config config = question2(4, 4, alphabet);
-    Config config2 = question2(4, 5, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz");
-    Config config3 = question2(1, 3, alphabet);
+//    Config config = question2(4, 4, alphabet);
+//    Config config2 = question2(4, 5, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz");
+//    Config config3 = question2(1, 3, alphabet);
+    Config config4 = question2(4, 5, "abcdefghijklmnopqrstuvwxyz");
 
 // Question 3 *************************************
-    question3(config, 1234);
-    question3(config2, 142678997);
-    question3(config3, 12345);
+//    question3(config, 1234);
+//    question3(config2, 142678997);
+//    question3(config3, 12345);
 
+// Question 4 **** un jour mais pas today *********
+// ui
 // Question 5 *************************************
+    char* text = (char*)"oups";
+    question5(config4,text,1);
 
+// Question 6 *************************************
 //  .
 //  .
 //  .
