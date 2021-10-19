@@ -1,0 +1,36 @@
+Question 1 :
+    - 0
+    - 1/51
+    - 1/n
+
+Question 2 :
+    - ça en change pas
+    - ça ne change pas
+
+Question 3 :
+    Ec( (Nc(Nc-1))/(n(n-1)) )
+
+Question 4 :
+    le text en français n'est pas aléatoir
+
+Question 5 :
+    l'indice de coinsidance utilis" pour déterminer comment le texte à été chiffré, quelle méthode utilisé. + taille substitution polyalphabétique
+
+Exercise 2 :
+    question 1 :
+        en moyenne : (N+1)/2
+
+Exercise 2 :
+    Question 1 :
+        XOR : entre 2 lettre, 3 premiers bits :  000
+        XOR : lettre/espace, 3 premiers bits  :  010
+
+Exercise 3 :
+    P(K=k)=2**-n
+    P(M=m)=2**-n
+
+    Question 1 :
+        P(M=m intersection C=c) = P(M=m intersection K= m XOR c)
+        P(C=c)                  = P(M=m) * P(K= m XOR c)= 2**-2n
+        P(C=c)                  = P(M=m intersection K= m XOR c)
+
