@@ -9,12 +9,15 @@
 #include <algorithm>
 #include <cstdint>
 #include "classes.cpp"
-
+#include <random>
+#include <limits>
 
 typedef unsigned char byte;
 
 using namespace std;
 
+vector<uint64_t> EMPREINTE;
+vector<char*> TEXTE;
 
 void hash_MD5(const char *s, byte *empreinte) {
     MD5((unsigned char *) s, strlen(s), empreinte);
@@ -33,36 +36,48 @@ string hexStr(byte *data, int len) {
     return ss.str();
 }
 
+uint64_t pow2(int x, int y){
+    uint64_t res = 1;
+    for(int i {1}; i<=y; i++){
+        res *= x;
+    }
+    return res;
+}
 
 Config init_config(Config config) {
     config.taille_alphabet = config.alphabet.size();
 
     for (int i = config.taille_min; i <= config.taille_max; i++) {
-        config.n += pow(config.taille_alphabet, i);
-        config.tab_text_clair.push_back(pow(config.taille_alphabet, i));
+        config.n += pow2(config.taille_alphabet, i);
+        config.tab_text_clair.push_back(pow2(config.taille_alphabet, i));
     }
     return config;
 }
 
 
-string i2c(Config config, long number) {
-    long num = number;
-    long new_n = num % config.taille_alphabet;
+
+
+string i2c(Config config, uint64_t number) {
+    uint64_t num = number;
     int i = 0;
-    for (int j = config.taille_min; j <= config.taille_max; j++) {
-        if (config.tab_text_clair[i] < number) {
+    int j;
+    for (j = config.taille_min; j <= config.taille_max; j++) {
+        if (config.tab_text_clair[i] < num) {
             num = num - config.tab_text_clair[i];
             i++;
+        }else{
+            break;
         }
     }
+    uint64_t new_n ;
     string res;
-    for (int i = 0; i < config.taille_max; i++) {
+    for (int i = 0; i <j; i++) {
+        new_n = num % config.taille_alphabet;
         res += (config.alphabet[new_n]);
         num = (num / config.taille_alphabet);
-        new_n = (num % config.taille_alphabet);
     }
     reverse(res.begin(),res.end());
-    cout << res << endl;
+    //cout << "mon i2c : "<<res << endl;
     return res;
 }
 
@@ -127,6 +142,51 @@ uint64_t h2i(Config config, byte* hash, int colonne){
     uint64_t* y = (uint64_t*)hash;
     return (*y + colonne) % config.n;
 }
+
+uint64_t i2i(Config config, long number, int t){
+    string res = i2c(config, number);
+    char* c  = (char*)res.c_str();
+    TEXTE.push_back(c);
+    byte tab[20];
+    hash_MD5(c,tab);
+    string hash = hexStr(tab,17);
+    //cout<<"mon hash : "<<hash<<endl;
+    uint64_t result = h2i(config, tab, t);
+    EMPREINTE.push_back(result);
+    //cout <<"mon h2i : "<<result <<endl;
+    return result;
+}
+
+Chaine nouvelle_chaine(Config config, uint64_t index, long largeur){
+    uint64_t res = index;
+    for(int i {1}; i <largeur; i++){
+        res = i2i(config, res,i);
+        //cout<<"**************************************"<< i<<"******************"<<endl;
+    }
+    Chaine c;
+    c.debut = index;
+    c.fin = res;
+    return c;
+}
+
+uint64_t index_aleatoire(Config config) {
+    random_device rd;
+    mt19937_64 eng(rd());
+    uniform_int_distribution<uint64_t> distr;
+    return (distr(eng)) % config.n;
+}
+
+bool compare(Chaine bigger, Chaine smaller){
+    return bigger.fin < smaller.fin;
+}
+
+vector<Chaine> creer_table(Config config, int largeur, int hauteur){
+    vector<Chaine> table;
+    for(int i {0} ; i< hauteur; i++){
+        table.push_back(nouvelle_chaine(config,index_aleatoire(config),largeur));
+    }
+    return table;
+}
 //********************************************************************************************
 
 void question1() {
@@ -147,7 +207,7 @@ Config question2(int taille_min, int taille_max, string alphabet) {
     return init_config(config);
 }
 
-void question3(Config config, int position) {
+void question3(Config config, uint64_t position) {
     i2c(config, position);
 }
 
@@ -158,6 +218,20 @@ void question5(Config config, char *text, int t){
     cout <<result <<endl;
 }
 
+void question6(Config config, long index, long largeur){
+    Chaine c = nouvelle_chaine(config, index, largeur);
+    cout<<"debut : "<<c.debut<<" fin : " <<c.fin<<endl;
+}
+
+void question8(Config config, int largeur, int hauteur){
+    vector<Chaine> table = creer_table(config, largeur, hauteur);
+    sort(table.begin(), table.end(), compare);
+    for(int i {0}; i< hauteur; i++){
+        cout<<"debut : "<<table[i].debut<<", fin : "<<table[i].fin<<endl;
+    }
+
+}
+
 int main() {
     string alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
@@ -165,23 +239,35 @@ int main() {
     //question1();
 
 // Question 2 *************************************
-//    Config config = question2(4, 4, alphabet);
-//    Config config2 = question2(4, 5, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz");
-//    Config config3 = question2(1, 3, alphabet);
+    Config config = question2(4, 4, alphabet);
+    Config config2 = question2(4, 5, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz");
+    Config config3 = question2(1, 3, alphabet);
     Config config4 = question2(4, 5, "abcdefghijklmnopqrstuvwxyz");
+
 
 // Question 3 *************************************
 //    question3(config, 1234);
-//    question3(config2, 142678997);
+//    question3(config2, 382537153);
+//    question3(config2, 373306112);
 //    question3(config3, 12345);
 
 // Question 4 **** un jour mais pas today *********
 // ui
 // Question 5 *************************************
-    char* text = (char*)"oups";
-    question5(config4,text,1);
+//    char* text = (char*)"oups";
+//    question5(config4,text,1);
 
 // Question 6 *************************************
+//    Config config5 = question2(4, 5, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz");
+//    question6(config5,1,100);
+
+// Question 7 *********** un jour mais pas today **
+// Question 8 *************************************
+    Config config6 = question2(5, 5, "abcdefghijklmnopqrstuvwxyz");
+    int largeur = 200;
+    int hauteur = 100;
+    question8(config6, largeur, hauteur);
+
 //  .
 //  .
 //  .

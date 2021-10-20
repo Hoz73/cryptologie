@@ -10,7 +10,7 @@ struct Config{
     long n = 0;      // le nombre total de textes clairs valides
     string h;  //type de hashage
     int taille_alphabet;
-    vector<int> tab_text_clair;
+    vector<uint64_t> tab_text_clair;
 
     Config(){}
 
@@ -20,3 +20,8 @@ struct Config{
         this->taille_min = taille_min;
     };
 };
+
+typedef struct {
+    uint64_t debut, fin;
+}Chaine;
+
