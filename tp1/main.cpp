@@ -265,8 +265,28 @@ tuple<vector<Chaine>, tuple<int, int>, Config> ouvre_table(Config config, string
     }
     tuple<int, int> largeur_hauteur(largeur, hauteur);
     tuple<vector<Chaine>, tuple<int, int>, Config> result(table, largeur_hauteur, config);
-
     return result;
+}
+
+void affiche_table(string file_name){
+    Config config = Config();
+    tuple<vector<Chaine>, tuple<int, int>, Config> res = ouvre_table(config, file_name);
+
+    cout<<"alphabet : "<<get<2>(res).alphabet<<endl;
+    cout<<"taille min : "<<get<2>(res).taille_max<<endl;
+    cout<<"taille max : "<<get<2>(res).taille_max<<endl;
+    cout<<"hauteur : "<<get<1>(get<1>(res))<<endl;
+    cout<<"largeur : "<<get<0>(get<1>(res))<<endl;
+    cout<<"*********************************"<<endl;
+    cout<<"Voici les 10 premières/dernières lignes récupérées depuis le fichier ( "<<file_name << " ): " <<endl;
+    for (int i{0}; i < 10; i++) {
+        cout << "debut : " << get<0>(res)[i].debut << ", fin : " << get<0>(res)[i].fin << endl;
+    }
+    cout<<"..."<<endl;
+    for (int i{get<1>(get<1>(res)) - 10}; i < get<1>(get<1>(res)); i++) {
+        cout << "debut : " << get<0>(res)[i].debut << ", fin : " << get<0>(res)[i].fin << endl;
+    }
+
 }
 //********************************************************************************************
 
@@ -325,7 +345,10 @@ void question9(vector<Chaine> table, Config config, int largeur, int hauteur) {
     cout<<"taille max : "<<get<2>(res).taille_max<<endl;
     cout<<"hauteur : "<<get<1>(get<1>(res))<<endl;
     cout<<"largeur : "<<get<0>(get<1>(res))<<endl;
+}
 
+void question9_affiche_table(string file_name) {
+    affiche_table(file_name);
 }
 
 
@@ -366,8 +389,9 @@ int main() {
     int hauteur = 100;
     vector<Chaine> table = question8(config6, largeur, hauteur);
 
-//    Question 9
-    question9(table, config6, largeur, hauteur);
+//    Question 9***********************************
+    //question9(table, config6, largeur, hauteur);
+    //question9_affiche_table("fichier_table.txt");
 //  .
 //  .
 //  .
