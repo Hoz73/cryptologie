@@ -11,6 +11,7 @@ struct Config{
     string h;  //type de hashage
     int taille_alphabet;
     vector<uint64_t> tab_text_clair;
+    string focntion_de_hachage;
 
     Config(){}
 
