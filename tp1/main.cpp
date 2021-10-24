@@ -1,3 +1,7 @@
+//TP1 Crypto
+//Hamze AL RASHEED
+//Rémi BOUVIER
+
 #include <iostream>
 #include <openssl/md5.h>
 #include <openssl/sha.h>
@@ -5,36 +9,33 @@
 #include <iomanip>
 #include <math.h>
 #include <vector>
-#include <stack>
 #include <algorithm>
-#include <cstdint>
 #include "classes.cpp"
 #include <random>
-#include <limits>
 #include <fstream>
-#include <tuple>
+#include <cstring>
+#include <getopt.h>
 
 typedef unsigned char byte;
-
 using namespace std;
 
 vector<uint64_t> EMPREINTE;
 vector<char *> TEXTE;
+vector<Chaine> TABLE;
+int LARGEUR;
+int HAUTEUR;
 
-void question9();
-
-void sauve_table();
-
-void ouvre_table();
-
+/* Question 1 */
 void hash_MD5(const char *s, byte *empreinte) {
     MD5((unsigned char *) s, strlen(s), empreinte);
 }
 
+/* Question 1 */
 void hash_SHA1(const char *s, byte *empreinte) {
     SHA1((unsigned char *) s, strlen(s), empreinte);
 }
 
+/* Question 1 */
 string hexStr(byte *data, int len) {
     stringstream ss;
     ss << hex;
@@ -44,25 +45,19 @@ string hexStr(byte *data, int len) {
     return ss.str();
 }
 
-uint64_t pow2(int x, int y) {
-    uint64_t res = 1;
-    for (int i{1}; i <= y; i++) {
-        res *= x;
-    }
-    return res;
-}
+/* Question 2 */
+Config init_config(int taille_min, int taille_max, string alphabet) {
+    Config config = Config(taille_min, taille_max, alphabet);
 
-Config init_config(Config config) {
-    config.taille_alphabet = config.alphabet.size();
-
+    //Modification de n et de tab_text_clair
     for (int i = config.taille_min; i <= config.taille_max; i++) {
-        config.n += pow2(config.taille_alphabet, i);
-        config.tab_text_clair.push_back(pow2(config.taille_alphabet, i));
+        config.n += pow(config.taille_alphabet, i);
+        config.tab_text_clair.push_back(pow(config.taille_alphabet, i));
     }
     return config;
 }
 
-
+/* Question 3 */
 string i2c(Config config, uint64_t number) {
     uint64_t num = number;
     int i = 0;
@@ -83,91 +78,32 @@ string i2c(Config config, uint64_t number) {
         num = (num / config.taille_alphabet);
     }
     reverse(res.begin(), res.end());
-    //cout << "mon i2c : "<<res << endl;
     return res;
 }
 
-// Todo not used
-string i2c_min_equal_max(Config config, long pos) {
-    string msg;
-    stack<string> q;
-    long new_pos = pos;
-    msg = config.alphabet[new_pos % config.taille_alphabet];
-    q.push(msg);
-    long new_n = new_pos / config.taille_alphabet;
-    for (int i = 1; i < config.taille_max; i++) {
-        msg = config.alphabet[new_n % config.taille_alphabet];
-        q.push(msg);
-        new_n = (new_n / config.taille_alphabet);
-    }
-    string res;
-    cout << "res avant" << msg << endl;
-    while (!q.empty()) {
-        res += q.top();
-        q.pop();
-    }
-    cout << res << endl;
-    return res;
-}
-
-// Todo not used
-void i2c2(Config config, long number) {
-    int i = 1;
-    bool end = false;
-    long num = config.taille_alphabet;
-    string result;
-    while (!end) {
-        if (number >= num) {
-            number -= num;
-            i++;
-            cout << "num : " << num << ", number : " << number << endl;
-            num = pow(config.taille_alphabet, i);
-        } else {
-            if (i < config.taille_min) {
-                while (i < config.taille_min) {
-                    cout << "pasage 1" << endl;
-                    result += "A";
-                    i++;
-                    config.taille_max -= 1;
-                }
-                result += i2c_min_equal_max(config, number);
-                cout << "res : " << result << endl;
-                end = true;
-            } else {
-                cout << "pasage 2" << endl;
-                cout << "num : " << num << ", number : " << number << endl;
-                result = i2c_min_equal_max(config, number);
-                end = true;
-            }
-        }
-    }
-    cout << result << endl;
-}
-
+/* Question 5 */
 uint64_t h2i(Config config, byte *hash, int colonne) {
     uint64_t *y = (uint64_t *) hash;
     return (*y + colonne) % config.n;
 }
 
+/* Question 6 */
 uint64_t i2i(Config config, long number, int t) {
     string res = i2c(config, number);
     char *c = (char *) res.c_str();
     TEXTE.push_back(c);
     byte tab[20];
     hash_MD5(c, tab);
-    string hash = hexStr(tab, 17);
-    //cout<<"mon hash : "<<hash<<endl;
     uint64_t result = h2i(config, tab, t);
     EMPREINTE.push_back(result);
-    //cout <<"mon h2i : "<<result <<endl;
     return result;
 }
 
+/* Question 6 */
 Chaine nouvelle_chaine(Config config, uint64_t index, long largeur) {
     uint64_t res = index;
     for (int i{1}; i < largeur; i++) {
         res = i2i(config, res, i);
-        //cout<<"**************************************"<< i<<"******************"<<endl;
     }
     Chaine c;
     c.debut = index;
@@ -175,6 +111,7 @@ Chaine nouvelle_chaine(Config config, uint64_t index, long largeur) {
     return c;
 }
 
+/* Question 8 */
 uint64_t index_aleatoire(Config config) {
     random_device rd;
     mt19937_64 eng(rd());
@@ -182,44 +119,26 @@ uint64_t index_aleatoire(Config config) {
     return (distr(eng)) % config.n;
 }
 
+/* Question 8 (compare 2 chaines) */
 bool compare(Chaine bigger, Chaine smaller) {
     return bigger.fin < smaller.fin;
 }
 
-vector<Chaine> creer_table(Config config, int largeur, int hauteur) {
-    vector<Chaine> table;
+/* Question 8 */
+void creer_table(Config config, int largeur, int hauteur) {
     for (int i{0}; i < hauteur; i++) {
-        table.push_back(nouvelle_chaine(config, index_aleatoire(config), largeur));
+        TABLE.push_back(nouvelle_chaine(config, index_aleatoire(config), largeur));
     }
-    return table;
+    sort(TABLE.begin(), TABLE.end(), compare);
 }
 
-void sauve_table(vector<Chaine> table, Config config, int largeur, int hauteur, string file_name) {
-    string const nomFichier(file_name);
-    ofstream monFlux(nomFichier.c_str());
-    if (monFlux) {
-        monFlux << "fonction de hachage : " << endl;
-        monFlux << config.focntion_de_hachage << endl;
-        monFlux << "alphabet , taille min , taille max : " << endl;
-        monFlux << config.alphabet << "," << config.taille_min << "," << config.taille_max << endl;
-        monFlux << "largeur , hauteur : " << endl;
-        monFlux << largeur << "," << hauteur << endl;
-        monFlux << "debut ---> fin : " << endl;
-        for (int i{0}; i < hauteur; i++) {
-            monFlux << table[i].debut << "--->" << table[i].fin << endl;
-        }
-    } else {
-        cout << "ERREUR: Impossible d'ouvrir le fichier." << endl;
-    }
-}
-
+/* Question 9 */
 vector<string> split(string s, string delimiter) {
-    size_t pos = 0;
+    size_t pos;
     string token;
     vector<string> res;
     while ((pos = s.find(delimiter)) != string::npos) {
         token = s.substr(0, pos);
-        //cout << token << endl;
         res.push_back(token);
         s.erase(0, pos + delimiter.length());
     }
@@ -227,180 +146,263 @@ vector<string> split(string s, string delimiter) {
     return res;
 }
 
-tuple<vector<Chaine>, tuple<int, int>, Config> ouvre_table(Config config, string file_name) {
+/* Question 9 */
+void sauve_table(Config config, int largeur, int hauteur, string file_name) {
+    string const nomFichier(file_name);
+    ofstream monFlux(nomFichier.c_str());
+    if (monFlux) {
+        //entête
+        monFlux << config.h << endl;
+        monFlux << config.alphabet << endl;
+        monFlux << config.taille_min << endl;
+        monFlux << config.taille_max << endl;
+        monFlux << largeur << endl;
+        monFlux << hauteur << endl;
+        //chaines
+        for (int i{0}; i < hauteur; i++) {
+            monFlux << TABLE[i].debut << "--->" << TABLE[i].fin << endl;
+        }
+    } else {
+        cout << "ERREUR: Impossible d'ouvrir le fichier." << endl;
+    }
+}
+
+/* Question 9 */
+void ouvre_table(Config config, string file_name) {
     ifstream fichier(file_name);
-
     string ligne;
+
+    //entête
+    getline(fichier, ligne);
+    config.h = ligne;
+    getline(fichier, ligne);
+    config.alphabet = ligne;
+    getline(fichier, ligne);
+    config.taille_min = atoi(ligne.c_str());
+    getline(fichier, ligne);
+    config.taille_max = atoi(ligne.c_str());
+    getline(fichier, ligne);
+    LARGEUR = atoi(ligne.c_str());
+    getline(fichier, ligne);
+    HAUTEUR = atoi(ligne.c_str());
+
+    //données
+    Chaine chaine;
     vector<string> res;
-
-    getline(fichier, ligne);
-    getline(fichier, ligne);
-    config.focntion_de_hachage = ligne;
-    getline(fichier, ligne);
-    getline(fichier, ligne);
-
-    res = split(ligne, ",");
-    config.alphabet = res[0];
-    config.taille_min = atoi(res[1].c_str());
-    config.taille_max = atoi(res[2].c_str());
-
-
-    getline(fichier, ligne);
-    getline(fichier, ligne);
-    res = split(ligne, ",");
-    int largeur = atoi(res[0].c_str());
-    int hauteur = atoi(res[1].c_str());
-
-    getline(fichier, ligne);
-    vector<Chaine> table;
-    for (int i{0}; i < hauteur; i++) {
+    for (int i{0}; i < HAUTEUR; i++) {
         getline(fichier, ligne);
         res = split(ligne, "--->");
-        Chaine chaine;
-        istringstream iss(res[0]);
+        istringstream iss((res[0]));
         iss >> chaine.debut;
         istringstream iss2(res[1]);
         iss2 >> chaine.fin;
-        table.push_back(chaine);
+        TABLE.push_back(chaine);
     }
-    tuple<int, int> largeur_hauteur(largeur, hauteur);
-    tuple<vector<Chaine>, tuple<int, int>, Config> result(table, largeur_hauteur, config);
-    return result;
 }
 
-void affiche_table(string file_name){
-    Config config = Config();
-    tuple<vector<Chaine>, tuple<int, int>, Config> res = ouvre_table(config, file_name);
+/* Question 9 */
+void affiche_config(Config config) {
+    cout<<"Fonction de hash = "<< config.h  <<endl;
+    cout<<"Alphabet = "<< config.alphabet  <<endl;
+    cout<<"Taille min = "<< config.taille_min  <<endl;
+    cout<<"Taille max = "<< config.taille_max  <<endl;
+    cout<<"N = "<< config.n  <<endl;
 
-    cout<<"alphabet : "<<get<2>(res).alphabet<<endl;
-    cout<<"taille min : "<<get<2>(res).taille_max<<endl;
-    cout<<"taille max : "<<get<2>(res).taille_max<<endl;
-    cout<<"hauteur : "<<get<1>(get<1>(res))<<endl;
-    cout<<"largeur : "<<get<0>(get<1>(res))<<endl;
-    cout<<"*********************************"<<endl;
-    cout<<"Voici les 10 premières/dernières lignes récupérées depuis le fichier ( "<<file_name << " ): " <<endl;
+}
+
+/* Question 9 */
+void affiche_table(Config config){
+    affiche_config(config);
+    cout << "height : " << HAUTEUR << " (M)" << endl;
+    cout << "width : "  << LARGEUR << " (T)" << endl;
+    cout << "\ncontent :" <<endl;
     for (int i{0}; i < 10; i++) {
-        cout << "debut : " << get<0>(res)[i].debut << ", fin : " << get<0>(res)[i].fin << endl;
+        cout << TABLE[i].debut << " --> " << TABLE[i].fin << endl;
     }
-    cout<<"..."<<endl;
-    for (int i{get<1>(get<1>(res)) - 10}; i < get<1>(get<1>(res)); i++) {
-        cout << "debut : " << get<0>(res)[i].debut << ", fin : " << get<0>(res)[i].fin << endl;
+    cout << "..." <<endl;
+    for (int i = HAUTEUR-10; i < HAUTEUR; i++) {
+        cout << TABLE[i].debut << " --> " << TABLE[i].fin << endl;
     }
-
 }
-//********************************************************************************************
 
-void question1() {
-    cout << "Hello, World!" << endl;
+/* Question 10 */
+//int inverse(int hauteur, int largeur, int h, char *clair) {
+//    int nb_candidats = 0;
+//    for (int t = largeur - 1; t > 0; t--) {
+//        int idx = h2i(h, t);
+//        for (int i = t + 1; i < largeur; i++) {
+//            idx = i2i(idx, i);
+//        }
+//        if (recherche(TABLE, hauteur, idx, &a, &b) > 0) {
+//
+//            for (int i = a; i <= b; i++) {
+//                if (verifie_candidat(h, t, TABLE[i][0], clair) == 1) {
+//                    return 1;
+//                } else {
+//                    nb_candidats++;
+//                }
+//            }
+//        }
+//    }
+//}
+
+/**Fonctions de tests et main****************************************************************************************/
+void question1MD5(char* word) {
     byte res[24];
-    hash_SHA1("Bob", res);
     string str;
-    str = hexStr(res, 20);
-
-    cout << str << endl;
-    hash_MD5("Salut", res);
+    hash_MD5(word, res);
     str = hexStr(res, 16);
     cout << str << endl;
 }
 
-Config question2(int taille_min, int taille_max, string alphabet) {
-    Config config = Config(taille_min, taille_max, alphabet);
-    return init_config(config);
+void question1SHA1(char* word) {
+    byte res[24];
+    string str;
+    hash_SHA1(word, res);
+    str = hexStr(res, 20);
+    cout << str << endl;
+}
+
+void question2(Config config) {
+    cout<<"Fonction de hash = "<< config.h  <<endl;
+    cout<<"Alphabet = "<< config.alphabet  <<endl;
+    cout<<"Taille min = "<< config.taille_min  <<endl;
+    cout<<"Taille max = "<< config.taille_max  <<endl;
+    cout<<"N = "<< config.n  <<endl;
+
 }
 
 void question3(Config config, uint64_t position) {
-    i2c(config, position);
+    string s  = i2c(config, position);
+    question2(config);
+    cout<< "i2c(" << position <<") = "<< s  <<endl;
+
 }
 
 void question5(Config config, char *text, int t) {
     byte res[30];
     hash_MD5(text, res);
     uint64_t result = h2i(config, res, t);
-    cout << result << endl;
+
+    question2(config);
+    cout<< "h2i(MD5(\"" << text <<"\") , "<<  t << ") = " << result << endl;
 }
 
 void question6(Config config, long index, long largeur) {
     Chaine c = nouvelle_chaine(config, index, largeur);
-    cout << "debut : " << c.debut << " fin : " << c.fin << endl;
+    question2(config);
+    cout << "\nchaine de taille : " << c.debut << " ... " << c.fin << endl;
 }
 
-vector<Chaine> question8(Config config, int largeur, int hauteur) {
-    vector<Chaine> table = creer_table(config, largeur, hauteur);
-    sort(table.begin(), table.end(), compare);
-    return table;
-
-}
-
-void question9(vector<Chaine> table, Config config, int largeur, int hauteur) {
-    string file_name = "fichier_table.txt";
-    sauve_table(table, config, largeur, hauteur, file_name);
-    tuple<vector<Chaine>, tuple<int, int>, Config> res = ouvre_table(config, file_name);
-    cout<<"Voici la table récupérer depuis le fichier ( "<<file_name << " ): " <<endl;
-    for (int i{0}; i < get<1>(get<1>(res)); i++) {
-        cout << "debut : " << get<0>(res)[i].debut << ", fin : " << get<0>(res)[i].fin << endl;
+void question8(Config config, int largeur, int hauteur) {
+    creer_table(config, largeur, hauteur);
+    question2(config);
+    cout << "height : " << hauteur << " (M)" << endl;
+    cout << "width : "  << largeur << " (T)" << endl;
+    cout << "\ncontent :" <<endl;
+    for (int i{0}; i < 10; i++) {
+        cout << TABLE[i].debut << " --> " << TABLE[i].fin << endl;
     }
-    cout<<"*********************************"<<endl;
-    cout<<"alphabet : "<<get<2>(res).alphabet<<endl;
-    cout<<"taille min : "<<get<2>(res).taille_max<<endl;
-    cout<<"taille max : "<<get<2>(res).taille_max<<endl;
-    cout<<"hauteur : "<<get<1>(get<1>(res))<<endl;
-    cout<<"largeur : "<<get<0>(get<1>(res))<<endl;
+    cout << "..." <<endl;
+    for (int i = hauteur-10; i < hauteur; i++) {
+        cout << TABLE[i].debut << " --> " << TABLE[i].fin << endl;
+    }
 }
 
-void question9_affiche_table(string file_name) {
-    affiche_table(file_name);
+void question9_sauve_table(Config config, int largeur, int hauteur, string fileName) {
+    creer_table(config, largeur, hauteur);
+    sauve_table(config, largeur, hauteur, fileName);
 }
 
+void question9_ouvre_affiche_table(Config config, string fileName) {
+    ouvre_table(config, fileName);
+    affiche_table(config);
+}
 
-int main() {
-    string alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+void affiche_help() {
+    cout<<"Usage: ./main [OPTIONS] [ARGS] \n"<<endl;
+    cout<<"Options possibles : "<<endl;
+    cout<<"  -m  <CHAINE>                           applique MD5 sur CHAINE (Q1)"<<endl;
+    cout<<"  -s  <CHAINE>                           applique SHA1 sur CHAINE (Q1)"<<endl;
+    cout<<"  -c                                     affiche la config courante (Q2)"<<endl;
+    cout<<"  -i  <INTEGER>                          calcule i2c(ENTIER) (Q3)"<<endl;
+    cout<<"  -h  <CHAINE>-<T>                       calcule h2i(H(CHAINE), T) (Q5)"<<endl;
+    cout<<"  -I  <IDX1>-<LARGEUR>                   calcule i2i(IDX1, LARGEUR) (Q6)"<<endl;
+    cout<<"  -C  <LARGEUR>-<HAUTEUR>                crée une table LARGEUR*HAUTEUR (Q8)"<<endl;
+    cout<<"  -F  <LARGEUR>-<HAUTEUR>-<FILENAME>     crée une table LARGEUR*HAUTEUR dans FILENAME (Q9)"<<endl;
+    cout<<"  -A  <FILENAME>                         affiche infos de la table FILENAME (Q9)"<<endl;
+    cout<<"  -H                                     affiche ce message"<<endl;
+}
 
-// Question 1 *************************************
-    //question1();
+int main(int argc, char **argv) {
+    if (argc == 1) {
+        affiche_help();
+    }
 
-// Question 2 *************************************
-    Config config = question2(4, 4, alphabet);
-    Config config2 = question2(4, 5, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz");
-    Config config3 = question2(1, 3, alphabet);
-    Config config4 = question2(4, 5, "abcdefghijklmnopqrstuvwxyz");
+    //Initialisation de la config
+    string alphabet = "abcdefghijklmnopqrstuvwxyz";
+    int taille_min = 5;
+    int taille_max = 5;
+    Config config = init_config(taille_min, taille_max, alphabet);
 
+    int c;
+    opterr = 0;
+    while ((c = getopt (argc, argv, "m:s:ci:h:I:C:F:A:H")) != -1)
+        switch (c)
+        {
+            case 'm':
+                question1MD5(optarg);
+                break;
+            case 's':
+                question1SHA1(optarg);
+                break;
+            case 'c':
+                question2(config);
+                break;
+            case 'i': {
+                uint64_t n = strtoull(optarg, NULL, 0);
+                question3(config, n);
+                break;
+            }
+            case 'h': {
+                string s = optarg;
+                vector<string> vs = split(s, "-");
 
-// Question 3 *************************************
-//    question3(config, 1234);
-//    question3(config2, 382537153);
-//    question3(config2, 373306112);
-//    question3(config3, 12345);
+                char *cstr = new char[vs[0].length() + 1];
+                strcpy(cstr, vs[0].c_str());
+                question5(config, cstr , stoi(vs[1]));
+                break;
+            }
+            case 'I': {
+                string s = optarg;
+                vector<string> vs = split(s, "-");
+                question6(config, stoi(vs[0]), stoi(vs[1]));
+                break;
+            }
+            case 'C': {
+                string s = optarg;
+                vector<string> vs = split(s, "-");
+                question8(config, stoi(vs[0]), stoi(vs[1]));
+                break;
+            }
+            case 'F': {
+                string s = optarg;
+                vector<string> vs = split(s, "-");
 
-// Question 4 **** un jour mais pas today *********
-// ui
-// Question 5 *************************************
-//    char* text = (char*)"oups";
-//    question5(config4,text,1);
-
-// Question 6 *************************************
-//    Config config5 = question2(4, 5, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz");
-//    question6(config5,1,100);
-
-// Question 7 *********** un jour mais pas today **
-// Question 8 *************************************
-    Config config6 = question2(5, 5, "abcdefghijklmnopqrstuvwxyz");
-    config6.focntion_de_hachage = "MD5";
-    int largeur = 200;
-    int hauteur = 100;
-    vector<Chaine> table = question8(config6, largeur, hauteur);
-
-//    Question 9***********************************
-    //question9(table, config6, largeur, hauteur);
-    //question9_affiche_table("fichier_table.txt");
-//  .
-//  .
-//  .
-//  .
-//  .
-    //((int64*)e)[0] question 4
-    //e: byte *
-    //e : [00,01,02,03,...]
-    //Jusqu'a question 6-7 pour la prochaine fois
+                char *cstr = new char[vs[2].length() + 1];
+                strcpy(cstr, vs[2].c_str());
+                question9_sauve_table(config, stoi(vs[0]), stoi(vs[1]), cstr);
+                break;
+            }
+            case 'A':
+                question9_ouvre_affiche_table(config, optarg);
+                break;
+            case 'H':
+                affiche_help();
+                break;
+            default:
+                abort ();
+        }
     return 0;
 }
 
