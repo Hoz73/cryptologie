@@ -1,7 +1,38 @@
-TP1 Cryptologie
-- Hamze Al Rasheed
-- Rémi Bouvier
+TP1 Crypto
+- Hamze AL RASHEED
+- Rémi BOUVIER
+./main pour tester le programme
+./main -help pour les différentes commandes disponibles
 ****************************************************************
-Questions 1 et 2 terminées
-Question 3 en cours
+Réponses aux questions :
+
+Question 4 :
+Avec n = le nombre d'entrées à tester
+1.
+Complexité de recherche en temps : O(nlogn)
+Complexité de recherche en espace : O(n)
+2.
+- Recherche Exhaustive:
+Complexité de recherche en temps : O(n)
+Complexité de recherche en espace : O(1)
+- Précalcul complet:
+Complexité de recherche en temps : O(1)
+Complexité de recherche en espace : O(n)
+
+Question 7 :
+L'ajout du paramètre t dans la fonction h2i permet d'augmenter la
+la couverture de la table car il permet de limiter les potentielles
+collisions (deux données d'entrées donnent un résultat identique avec
+la même fonction de hachage). Le paramètre t permet donc d'ajouter
+un peu d'aléatoire et d'éviter d'avoir plusieurs fois le même hash
+dans la table.
+
+****************************************************************
+Avancement dans le TP :
+ - Partie "préliminaires" (questions 1, 2 et 3) terminée
+ - Partie "idée du compromis temps mémoire" (question 4) terminée
+ - Partie "précalcul de la table" (questions 5, 6, 7, 8, 9) terminée
+ - Partie "recherche dans une table arc-en-ciel (questions 10, 11, 12, 13, 14, 15)" à faire
+ - Partie "finitions" (question 16) faite au fur et à mesure de l'avancement des questions
+
 
