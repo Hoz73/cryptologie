@@ -1,2 +1,6 @@
-the president of the university : Philippe Galez
 the responsible for the curriculum : jacques olivier lachaud
+the student name : 123456789
+the student number : Rémi Bouvier
+the average of the student : 17
+the name of the  diploma : CMI Informatique
+the emission date : 15/11/20219
