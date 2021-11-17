@@ -1,4 +1,6 @@
 from PIL import Image
+from PIL import ImageFont
+from PIL import ImageDraw
 from Crypto.PublicKey import RSA
 from Crypto.Hash import SHA256
 from Crypto.Signature import PKCS1_v1_5
@@ -74,7 +76,7 @@ def signe_data(file_name, signature_name):
 
     signer = PKCS1_v1_5.new(private_key)
     digest = SHA256.new()
-    digest.update(bytes(message,'utf-8'))
+    digest.update(bytes(message, 'utf-8'))
     sig = signer.sign(digest)
 
     f = open(f'signatures/{signature_name}.bin', "wb")
@@ -82,7 +84,7 @@ def signe_data(file_name, signature_name):
     f.close()
 
 
-def verfy_signed_message(data, sign):
+def verify_signed_message(data, sign):
     f = open(f'data/{data}.txt', "r")
     message = f.read()
     f.close()
@@ -98,6 +100,21 @@ def verfy_signed_message(data, sign):
     return verifier.verify(digest, sign)
 
 
+def generate_diploma(image_name, student_name, diploma_name, avarage, hidden_data=False):
+    def add_text(img, text, x, y, text_size, font='sans', color='black'):
+        draw = ImageDraw.Draw(img)  # objet "dessin" dans l'image
+        font = ImageFont.truetype(f'fonts/{font}.ttf', text_size)  # police à utiliser
+        draw.text((x, y), text, color, font)  # ajout du texte
+
+    img = Image.open(f'images/{image_name}_with_hidden_data.png')
+    add_text(img, 'Diplome', 400, 200, 40, 'Pacifico', 'red')
+    add_text(img, f'{diploma_name}', 350, 280, 35, 'Pacifico2', 'red')
+    add_text(img, f'{student_name} a réussi la formation', 250, 350, 30)
+    add_text(img, f'avec une moyenne de {avarage}', 350, 420, 25)
+    if hidden_data:
+        img.save(f'diplomas/{image_name}_{student_name}_{diploma_name}_with_hidden_data.png')
+    else:
+        img.save(f'diplomas/{image_name}_{student_name}_{diploma_name}.png')
 
 
 if __name__ == '__main__':
@@ -108,18 +125,21 @@ if __name__ == '__main__':
               '3 - generate a public and private key\n'
               '4 - signe data with the private key\n'
               '5 - verify data with public key\n'
+              '6 - generate a diploma\n'
+              '7 - main function\n'
+              '8 - extract information and verify signature from an image\n'
               '9 - end the programme ')
-        choice = input('chose your action :')
+        choice = input('chose your action : ')
         if choice == '1':
             image_name = input('write the image name : ')
             student_number = input('write the student number : ')
             img = Image.open(f'images/{image_name}.png')
             hide_message(img, student_number)
-            img.save(f'{image_name}_modifié.png')
+            img.save(f'images/{image_name}_with_hidden_data.png')
             print('############# hiding the number within the chosen image has been done successfully ###########')
         elif choice == '2':
             image_name = input('write the image name : ')
-            img = Image.open(f'{image_name}.png')
+            img = Image.open(f'images/{image_name}.png')
             print('############# here you are the hidden student number withen the chosen image : ###########')
             print(get_message(img))
         elif choice == '3':
@@ -132,8 +152,45 @@ if __name__ == '__main__':
         elif choice == '5':
             data_file = input('write the name of your data file : ')
             sing_file = input('write the name of your signature file : ')
-            if verfy_signed_message(data_file, sing_file):
+            if verify_signed_message(data_file, sing_file):
                 print('the signature is valid')
+            else:
+                print('the signature is not valid')
+        elif choice == '6':
+            image_name = input('enter the image name that you want to modify : ')
+            student_name = input('enter student name : ')
+            diploma_name = input('enter the diploma name : ')
+            student_average = input('his average : ')
+            generate_diploma(image_name, student_name, diploma_name, student_average)
+            print('############# the image has been generated #############')
+        elif choice == '7':
+            image_name = input('write the image name : ')
+            student_number = input('write the student number to hide within the image : ')
+            data_file = input('write the name of your data file : ')
+            sing_file = input('write the name of your "wanted" signature file : ')
+            student_name = input('the name of the student : ')
+            diploma_name = input('the name of his diploma : ')
+            student_average = input('his average : ')
+
+            # hide the student number
+            img = Image.open(f'images/{image_name}.png')
+            hide_message(img, student_number)
+            img.save(f'images/{image_name}_with_hidden_data.png')
+            print(f'the student number has been hidden')
+            # sign the data
+            signe_data(data_file, sing_file)
+            print(f'the data has been signed')
+            # generate of the diploma
+            generate_diploma(image_name, student_name, diploma_name, student_average, hidden_data=True)
+        elif choice == '8':
+            image_name = input('write the image name that you want to check : ')
+            data_file = input('write the name of your data file : ')
+            sing_file = input('write the name of your signature file : ')
+            if verify_signed_message(data_file, sing_file):
+                print('the signature is valid')
+                img = Image.open(f'diplomas/{image_name}.png')
+                student_number = get_message(img)
+                print(f'the hidden student number within the image is : {student_number} ')
             else:
                 print('the signature is not valid')
         elif choice == '9':
